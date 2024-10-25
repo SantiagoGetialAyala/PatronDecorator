@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plataforma de Suscripción</title>
+  <link rel="stylesheet" href="styles.css"> 
+</head>
+<body>
+  <div class="container">
+    <h1>Selecciona tu Suscripción</h1>
+    <form id="subscription-form">
+      <label for="name">Nombre:</label>
+      <input type="text" id="name" required>
+
+      <label for="email">Correo Electrónico:</label>
+      <input type="email" id="email" required>
+
+      <label for="address">Dirección:</label>
+      <input type="text" id="address" required>
+
+      <label for="plan">Elige tu Plan:</label>
+      <select id="plan">
+        <option value="Plan Básico">Plan Básico</option>
+        <option value="Plan Estándar">Plan Estándar</option>
+        <option value="Plan Premium">Plan Premium</option>
+      </select>
+
+      <label for="options">Opciones Adicionales:</label>
+      <label><input type="checkbox" name="option" value="HD"> HD</label>
+      <label><input type="checkbox" name="option" value="Múltiples Dispositivos"> Múltiples Dispositivos</label>
+      <label><input type="checkbox" name="option" value="Descargas sin conexión"> Descargas sin conexión</label>
+      <label><input type="checkbox" name="option" value="Contenido Premium"> Contenido Premium</label>
+
+      <button type="submit">Crear Suscripción</button>
+    </form>
+
+    <p id="result"></p>
+
+    <h2>Cancelar Suscripción</h2>
+    <form id="cancel-form">
+      <label for="cancel-name">Nombre:</label>
+      <input type="text" id="cancel-name" required>
+      <button type="submit">Cancelar Suscripción</button>
+    </form>
+
+    <h2>Detalles del Cliente</h2>
+    <form id="details-form">
+      <label for="details-name">Nombre:</label>
+      <input type="text" id="details-name" required>
+      <button type="submit">Ver Detalles</button>
+    </form>
+
+    <p id="details-result"></p>
+  </div>
+
+  <script>
+    document.getElementById('subscription-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const address = document.getElementById('address').value;
+      const plan = document.getElementById('plan').value;
+      const options = Array.from(document.querySelectorAll('input[name="option"]:checked')).map(option => option.value);
+
+      fetch('/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name, email, address, plan, options })
+      })
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('result').innerText = `Suscripción creada: ${data.subscription} - Precio: $${data.cost}`;
+      });
+    });
+
+    document.getElementById('cancel-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const name = document.getElementById('cancel-name').value;
+
+      fetch('/cancel', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name })
+      })
+      .then(response => response.text())
+      .then(data => {
+        alert(data);
+      });
+    });
+
+    document.getElementById('details-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const name = document.getElementById('details-name').value;
+
+      fetch(`/customer?name=${name}`)
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('details-result').innerText = `Nombre: ${data.name} - Correo: ${data.email} - Dirección: ${data.address} - Plan: ${data.plan}`;
+      })
+      .catch(error => {
+        document.getElementById('details-result').innerText = 'Cliente no encontrado.';
+      });
+    });
+  </script>
+</body>
+</html>
